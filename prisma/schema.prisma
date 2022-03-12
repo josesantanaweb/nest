@@ -15,3 +15,10 @@ model User {
   createAt    DateTime? @default(now())
   updated_at  DateTime @updatedAt
 }
+
+model Category {
+  id          Int     @id @default(autoincrement())
+  name        String
+  createAt    DateTime? @default(now())
+  updated_at  DateTime @updatedAt
+}
