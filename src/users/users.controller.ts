@@ -6,11 +6,19 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UserQueryDto } from './dto/query.dto';
+import { isEmpty } from '../utils';
 import { UpdateUserDto } from './dto/update-user.dto';
-
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../auth/constants';
+import RolesGuard from '../auth/guards/roles.guard';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { Me } from 'src/auth/guards/current-user.guard';
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -21,8 +29,10 @@ export class UsersController {
   }
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  findAll(@Query() query: UserQueryDto) {
+    return this.usersService.findAll(isEmpty(query) ? null : query);
   }
 
   @Get(':id')
