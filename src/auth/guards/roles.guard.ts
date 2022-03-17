@@ -1,40 +1,33 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Inject,
-  forwardRef,
-  Injectable,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { Observable } from 'rxjs';
 import { Reflector } from '@nestjs/core';
-import { Role } from '../constants';
-import { ROLES_KEY } from '../decorators/roles.decorator';
-import { UsersService } from 'src/users/users.service';
+import { Roles } from '../constants';
 
 @Injectable()
-export default class RolesGuard implements CanActivate {
-  constructor(
-    private reflector: Reflector,
-    @Inject(forwardRef(() => UsersService))
-    private userService: UsersService,
-  ) {}
+export class RoleBasedGuard implements CanActivate {
+  constructor(private readonly reflector: Reflector) {}
+  canActivate(
+    context: ExecutionContext,
+  ): boolean | Promise<boolean> | Observable<boolean> {
+    const roles =
+      this.reflector.getAllAndMerge<Roles[]>('roles', [
+        context.getClass(),
+        context.getHandler(),
+      ]) || [];
 
-  canActivate(context: ExecutionContext) {
-    const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
+    const isPublic = this.reflector.getAllAndOverride<boolean>('public', [
       context.getHandler(),
       context.getClass(),
     ]);
-
-    if (!requiredRoles) {
+    if (!roles || isPublic) {
       return true;
     }
+    const request = context.switchToHttp().getRequest();
+    const user = request.user;
+    return this.matchRoles(roles, [user.role.title]);
+  }
 
-    const { user } = context.switchToHttp().getRequest();
-
-    const checkUserRole = this.userService
-      .findOne(user.id)
-      .then(function (user) {
-        return requiredRoles.some((role) => user.role.title.includes(role));
-      });
-    return checkUserRole;
+  matchRoles(definedRoles: Roles[], userRoles: Roles[]): boolean {
+    return userRoles.some((role) => definedRoles.includes(role));
   }
 }

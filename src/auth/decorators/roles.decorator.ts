@@ -1,5 +1,9 @@
-import { SetMetadata } from '@nestjs/common';
-import { Role } from '../constants';
+import { Roles } from '../constants';
 
-export const ROLES_KEY = 'roles';
-export const Roles = (...roles: Role[]) => SetMetadata(ROLES_KEY, roles);
+import { SetMetadata } from '@nestjs/common';
+/**
+ * Allow only specified roles to access a specific route
+ * @param roles
+ * @constructor
+ */
+export const RolesAllowed = (...roles: Roles[]) => SetMetadata('roles', roles);

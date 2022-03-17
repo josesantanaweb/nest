@@ -2,7 +2,7 @@ export const jwtConstants = {
   secret: 'secretKey',
 };
 
-export enum Role {
-  ADMIN = 'Admin',
+export enum Roles {
   USER = 'User',
+  ADMIN = 'Admin',
 }

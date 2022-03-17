@@ -14,9 +14,9 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UserQueryDto } from './dto/query.dto';
 import { isEmpty } from '../utils';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { Role } from '../auth/constants';
-import RolesGuard from '../auth/guards/roles.guard';
+import { RolesAllowed } from '../auth/decorators/roles.decorator';
+import { Roles } from '../auth/constants';
+import { RoleBasedGuard } from '../auth/guards/roles.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Me } from 'src/auth/guards/current-user.guard';
 @Controller('users')
@@ -29,8 +29,8 @@ export class UsersController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @RolesAllowed(Roles.ADMIN)
+  @UseGuards(JwtAuthGuard, RoleBasedGuard)
   findAll(@Query() query: UserQueryDto) {
     return this.usersService.findAll(isEmpty(query) ? null : query);
   }
