@@ -47,6 +47,16 @@ export class UsersService {
     });
   }
 
+  updateUserImageById(id: number, updateUserDto: UpdateUserDto, image: string) {
+    return this.prismaService.user.update({
+      data: {
+        ...updateUserDto,
+        image: image,
+      },
+      where: { id },
+    });
+  }
+
   remove(id: number) {
     return this.prismaService.user.delete({ where: { id } });
   }

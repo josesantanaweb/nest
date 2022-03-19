@@ -16,5 +16,7 @@ export class CreateUserDto {
   @MinLength(3)
   password: string;
 
+  image: string;
+
   roleId: number;
 }

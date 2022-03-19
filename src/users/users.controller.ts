@@ -8,6 +8,10 @@ import {
   Delete,
   Query,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  Request,
+  BadRequestException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -19,6 +23,8 @@ import { Roles } from '../auth/constants';
 import { RoleBasedGuard } from '../auth/guards/roles.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Me } from 'src/auth/guards/current-user.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { saveImageToStorage } from '../helpers/image-storage';
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -26,6 +32,19 @@ export class UsersController {
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
+  }
+
+  @Post('upload')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('file', saveImageToStorage))
+  upload(@UploadedFile() file: Express.Multer.File, @Request() req) {
+    if (!file) {
+      throw new BadRequestException('File is not an image');
+    }
+
+    const user = req.user;
+
+    return this.usersService.update(user.id, { image: file.filename });
   }
 
   @Get()
